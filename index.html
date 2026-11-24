@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SONARE – Controlo de Convidados</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;700&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f2f5f4;--card:#fff;--ink:#12292b;--mute:#5d7274;--line:#d9e2e1;--acc:#1f5d5a;--accbg:#e1efed;--gold:#b8923f;--goldbg:#f6edd8;--ok:#1f7a4d;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1819;--card:#16262a;--ink:#e8f0ef;--mute:#8da5a7;--line:#27393d;--acc:#6cc1bb;--accbg:#1b3a3b;--gold:#d8b565;--goldbg:#33301f;--ok:#5fcf97}}
+:root[data-theme="dark"]{--bg:#0e1819;--card:#16262a;--ink:#e8f0ef;--mute:#8da5a7;--line:#27393d;--acc:#6cc1bb;--accbg:#1b3a3b;--gold:#d8b565;--goldbg:#33301f;--ok:#5fcf97}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 "Instrument Sans",system-ui,sans-serif;min-height:100%}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--card);z-index:10}
+header{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:env(safe-area-inset-top,0px);z-index:9;padding:14px 16px 12px}
+.wrap{max-width:1100px;margin:0 auto}
+h1{font:700 26px/1 Fraunces,Georgia,serif;margin:0;letter-spacing:.04em}
+.sub{color:var(--mute);font-size:13px;margin-top:3px}
+.top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
+.stats{display:flex;gap:18px;margin-top:12px}
+.stat b{font:700 28px/1 Fraunces,Georgia,serif;color:var(--acc)}
+.stat span{display:block;font-size:12px;color:var(--mute);margin-top:2px}
+.bar{height:6px;background:var(--line);border-radius:3px;margin-top:12px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--gold);width:0;transition:width .3s}
+.tools{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+input[type=search],.edit,.add input{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 12px;min-width:0}
+input[type=search]{flex:1 1 180px}
+button{font:inherit;color:var(--ink);background:none;border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+.chip.on{background:var(--acc);color:var(--card);border-color:var(--acc)}
+main{padding:16px;max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px;align-items:start}
+.t{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.t.full{border-color:var(--gold)}
+.th{display:flex;justify-content:space-between;align-items:center;width:100%;border:0;border-radius:0;padding:12px 14px;text-align:left;background:var(--accbg)}
+.th strong{font:700 18px Fraunces,Georgia,serif}
+.th small{display:block;color:var(--mute);font-size:12px;font-weight:400}
+.pill{font-size:13px;font-weight:600;color:var(--acc)}
+.full .pill{color:var(--gold)}
+.t.shut ul,.t.shut .add{display:none}
+ul{list-style:none;margin:0;padding:0}
+li{display:flex;align-items:center;gap:10px;padding:6px 12px;border-top:1px solid var(--line)}
+li.done .nm{color:var(--mute);text-decoration:line-through}
+li.done{background:var(--goldbg)}
+.ck{flex:none;width:34px;height:34px;padding:0;border-radius:50%;font-size:17px;line-height:1;color:transparent}
+li.done .ck{background:var(--ok);border-color:var(--ok);color:#fff}
+.nm{flex:1;min-width:0;padding:8px 0;cursor:text;overflow-wrap:anywhere}
+.nm small{display:block;color:var(--mute);font-size:11px}
+.px{flex:none;font-size:12px;padding:4px 8px;border-radius:12px;color:var(--mute)}
+.edit{flex:1}
+.add{display:flex;gap:6px;padding:8px 12px;border-top:1px solid var(--line)}
+.add input{flex:1}
+.empty{padding:40px;text-align:center;color:var(--mute);grid-column:1/-1}
+.foot{max-width:1100px;margin:0 auto;padding:4px 16px 40px;display:flex;gap:8px;flex-wrap:wrap;color:var(--mute);font-size:13px;align-items:center}
+@media print{header .tools,.add,.ck,.foot button{display:none}header{position:static}.t.shut ul{display:block}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+<div class="top"><div><h1>SONARE</h1><div class="sub">Controlo de convidados</div><div id="st" class="sub"></div></div>
+<button id="theme" aria-label="Alternar tema">◐</button></div>
+<div class="stats">
+<div class="stat"><b id="sP">0</b><span>pessoas presentes</span></div>
+<div class="stat"><b id="sT">0</b><span>pessoas esperadas</span></div>
+<div class="stat"><b id="sG">0/0</b><span>convites</span></div>
+</div>
+<div class="bar"><i id="pb"></i></div>
+<div class="tools">
+<input type="search" id="q" placeholder="Procurar convidado…" aria-label="Procurar convidado">
+<button class="chip on" data-f="all">Todos</button>
+<button class="chip" data-f="out">Em falta</button>
+<button class="chip" data-f="in">Presentes</button>
+</div></div></header>
+<main id="app"></main>
+<div class="foot">
+<button id="exp">Expandir tudo</button><button id="col">Recolher tudo</button><button id="prt">Imprimir</button>
+<button id="rst">Limpar presenças</button>
+<span>Toque no nome para editar · toque em “2 pess.” para alterar o número de pessoas.</span>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+// Configure your Firebase details here if needed:
+// firebase.initializeApp({ apiKey: "...", authDomain: "...", projectId: "..." });
+
+const RAW=[
+["Mesa 1","Adolfo Mavala e Esposa|Juventina Tamele|Juvencia|Fenicio Macuacua e Esposa|Mendonça e Esposa|Miguel Mussa e Esposa|Evaristo Baquete e Esposa|Victor e Graça Muirequetule|Casimiro Mueio"],
+["Mesa 2","Baptista e Esposa|Evaristo e Esposa|Elvira|Sr. Osvaldo|Sr. Elton Pinceiro e Esposa|Sr. Paulo e Esposa|Sr. Aleixo Nanlelo e Esposa|Esposa Ricardino|Sra. Luísa Berta|Pilar|Jacinta"],
+["Mesa 3","Albino Macuacua e Esposa|Saurina e Helena Licucu|Belizário Tinga e Esposa|Joana Xissuki e Amina|José Pacote e Esposa|Bento Noquisso e Esposa"],
+["Mesa 4","Mama|Elisa Chemane & Esposo|Luísa Martins|Esperança Cardoso|Virgínia Bento|Joaninha Machava|Guilhermina Milice|Lúcia Catelia|Tia Aissa|Zélia & Carolina"],
+["Mesa 5","Sr. Abacar Mussa e Esposa|Sr. Tomás Mondlane e Esposa|Sr. Guidion Uamusse e Esposa|Sr. Lucrécio Matuta e Esposa|Sr. Eduardo Guimarães e Esposa|Sr. Jorge Zamdamela e Esposa"],
+["Mesa 6","Estefânia|Sr. Hermínio Lamo e Esposa|Sr. Pinceiro Muirequetule|Sr. Venâncio Gomes|Sr. Aleixo Gomes|Sr. João Yassine|Sra. Lídia|Luís Oliveira|Sra. Lucrécia|Meireles e Esposa"],
+["Mesa 7","Maline de Sousa e Esposo|Stélio Craveirinha|Padre Vasco & Acompanhante|Isabel e Virita|Crimildo Manala & Esposa|Eugénia Tamele|Ermelinda Tamele|Laurinda Masseque"],
+["Mesa 8","Melo e Esposa|Octávio de Jesus e Esposa|Estrela Chunguana e Esposo|Inocêncio Mondlane & Esposa|Mélia Fondo e Esposo|Família Botão"],
+["Mesa 9","Dércio Macuacua|Teresa Macuacua e Anita|Romão Macuacua e Esposa|Graça Macuacua e Esposo|Bento Macuacua e Esposa|Sheila Mariza e Inês|Nilza Macuacua"],
+["Mesa 10","Sr. Moisés Alberto e Esposa|Sr. João Baptista Cunhane e Esposa|Sr. Pedro Chauque e Esposa|Sr. Erick|Sra. Deolinda|Sr. Luís Poio e Esposa|Sr. Adriano Albano e Esposa"],
+["Mesa 11","Roberto Muianga & Esposa|Anabela Mabota|Victor Macuacua & Esposa|Eduardo Cossa & Esposa|Clotilde da Graça & Esposo|Júvia Graça|Argentina e Julieta Moiane"],
+["Mesa 12","Marinho e Esposa|Merino e Esposa|Eduardo Tamele e Esposa|Énia Mavale e Esposo|Anatoly Mutombene & Esposa|Miranda e Esposa"],
+["Mesa 13","Fenício Júnior e Esposa|Michele e Nicole|Félix Ubisse|Abílio Levessene e Esposa|Aires Macuacua e Efigénia|Delton Macuacua e Jovita"],
+["Mesa 14","Joyce|Alia|Miranda Júnior|Marlon|Jovita|Jennifer|Camila Balate|Camila Balate|Alcino Manganhe|Nelma Magul|Shaniah Moyana|Lourdino Nhanbongo"],
+["Mesa 15","Marília Paunde e Acompanhante|Laura Balate|Sara Magaia|Dirce|Colete|Ana Inguane|Olívia Langa|Vanda Matusse & Esposo|Ana Mugabe|Nuno Naciir"],
+["Mesa 16","Fernanda Tamele e Filha|Sónia Tamele|Vera Tamele|Celina Tamele|Ana Paula Tamele|Cristina Tamele|Maria Gilberto|Lídia Mandlate|Jéssica Caetano|Joventina Nhabongo"],
+["Mesa 17","Sra. Anabela e Esposo|Sra. Eulália e Esposo|Sra. Nilza Mwanga|Sra. Inês|Sra. Esposa - Idelson Joaquim|Sra. Lola Quissico|Sra. Ancha Mussa|Sr. Eduardo Pintane e Esposa|Sr. Euclides"],
+["Mesa 18","Lourino Macie e Esposa|Assucena Macuacua|Martinha Macuacua|Pedro Maulele e Esposa|Lázaro Moiane e Esposa|Edson Gune e Esposa|Kátia e Ivan"],
+["Mesa 19 · Crianças","Sheva|Gilda|Yura|Helena|Elay|Noah|Adrielle|Primo Sheva|Primo Elay|Eloah|Afonso|Samira"],
+["Mesa 20 · Crianças","Cleúsia|Qays|Neytan|Igth|Dwain|Hakim|Tifany|Adassa|Julieta|Khensany|Jovita|Luana"],
+["Mesa 21","Sr. Célio Chatuir e Esposa|Sr. Flávio Chatuir e Esposa|Sr. Bruno Bata e Esposa|Sr. Pascoal Gomes e Esposa|Sr. Carlos Fumo e Esposa|Sr. Rito Jorge|Sr. Jossias Matuassanga"],
+["Mesa 22","Sr. Macado Júnior e Esposa|Sr. Sulaidine Sedik e Esposa|Sr. Jaime Lopes e Esposa|Sra. Célia João|Sr. Mauro|Sr. Noimilto Mindo e Esposa|Sr. Elton Mavesse e Esposa"],
+["Mesa 23","Amigo do Noivo|Amigo do Noivo|Amigo do Noivo|Amigo do Noivo|Amigo do Noivo|Amigo do Noivo|Amigo do Noivo"]
+];
+
+const KEY="sonare-convidados-v3";
+const pax=n=>/Família/.test(n)?4:/ (e|&) /.test(n)?2:1;
+let uid=0;
+const fresh=()=>{uid=0;return RAW.map(([name,s],i)=>({id:i,name,open:true,g:s.split("|").map(n=>({id:"g"+(++uid),n,p:pax(n),c:0,t:"",o:uid}))}))};
+let S;
+try{const v=localStorage.getItem(KEY);S=v?JSON.parse(v):null}catch(e){S=null}
+if(!S||!Array.isArray(S.t)){S={t:fresh()}}
+let mode="wait",DB=null,canW=true,live=false,pending=0,seeding=0;
+const save=()=>{if(live)return;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const ok=()=>canW&&(mode==="live"||mode==="local");
+const ST={wait:["A ligar…","var(--mute)"],live:["● Ao vivo: sincronizado em todos os dispositivos","var(--ok)"],local:["Modo local: só neste dispositivo","var(--gold)"],ro:["Só leitura: peça acesso de Contribuidor","var(--gold)"],empty:["A aguardar que o organizador abra a página pela primeira vez","var(--mute)"]};
+function setSt(){const[a,c]=ST[mode],e=$("st");e.textContent=a;e.style.color=c}
+function push(t,g,del){save();if(!DB||!live)return;const r=DB.collection("guests").doc(g.id);
+  (del?r.delete():r.set({t:t.id,n:g.n,p:g.p,c:g.c,ts:g.t,o:g.o||0})).catch(()=>{$("st").textContent="Erro ao sincronizar: tente de novo";$("st").style.color="var(--gold)"})}
+function rebuild(docs){
+  const by=S.t.map(t=>({id:t.id,name:t.name,open:t.open,g:[]}));
+  docs.forEach(d=>{const v=d.data();if(v&&by[v.t])by[v.t].g.push({id:d.id,n:String(v.n),p:+v.p||1,c:v.c?1:0,t:v.ts||"",o:+v.o||0})});
+  by.forEach(t=>t.g.sort((a,b)=>a.o-b.o));S={t:by};
+}
+const busy=()=>editing||(document.activeElement&&document.activeElement.dataset&&document.activeElement.dataset.a==="addin");
+async function seed(){
+  seeding=1;const all=fresh();let n=0;
+  for(const t of all)for(const g of t.g){
+    for(let k=0;k<6;k++){try{await DB.collection("guests").doc(g.id).set({t:t.id,n:g.n,p:g.p,c:0,ts:"",o:g.o});break}catch(e){await new Promise(r=>setTimeout(r,700*(k+1)))}}
+    n++;$("st").textContent="A preparar a lista partilhada… "+n+"/"+uid;
+  }
+}
+async function init(){
+  setSt();
+  if(typeof firebase === 'undefined' || !firebase.apps.length){
+    mode="local";setSt();return;
+  }
+  const db=firebase.firestore();
+  DB=db;  
+  try{
+    let owner=true;
+    let user=null;
+    if(user&&(await user.can("data.write"))===false)canW=false;
+  }catch(e){}
+  
+  let owner=true;
+  const tm=setTimeout(()=>{if(mode==="wait"){mode="local";setSt()}},10000);
+  db.collection("guests").limit(1000).onSnapshot(snap=>{
+    clearTimeout(tm);
+    if(!snap.docs.length){
+      if(owner&&!seeding)seed();else if(!owner&&!live){mode="empty";setSt()}
+      return;
+    }
+    live=true;mode=canW?"live":"ro";
+    rebuild(snap.docs);setSt();
+    if(busy())pending=1;else render();
+  },()=>{if(!live){mode="local";setSt()}});
+}
+let F="all",Q="",editing=null;
+const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const norm=s=>s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+const $=id=>document.getElementById(id);
+function render(){
+  let gi=0,gc=0,pp=0,pt=0,html="";
+  for(const t of S.t){
+    const all=t.g;gi+=all.length;
+    const tp=all.reduce((a,g)=>a+g.p,0),pr=all.filter(g=>g.c);
+    const cp=pr.reduce((a,g)=>a+g.p,0);gc+=pr.length;pp+=cp;pt+=tp;
+    const vis=all.filter(g=>(F==="all"||(F==="in")===!!g.c)&&(!Q||norm(g.n).includes(Q)));
+    if((Q||F!=="all")&&!vis.length)continue;
+    const open=t.open||Q||F!=="all";
+    const full=all.length&&pr.length===all.length;
+    html+=`<section class="t${full?" full":""}${open?"":" shut"}" data-t="${t.id}">
+<button class="th" data-a="tog"><span><strong>${esc(t.name)}</strong><small>${all.length} convites · ${tp} pessoas</small></span><span class="pill">${full?"Completa · ":""}${cp}/${tp}</span></button><ul>`;
+    for(const g of vis){
+      html+=`<li class="${g.c?"done":""}" data-g="${g.id}"><button class="ck" data-a="ck" aria-label="Marcar presença de ${esc(g.n)}">✓</button>`+
+      (editing===g.id?`<input class="edit" value="${esc(g.n)}" data-a="ed"><button data-a="del" aria-label="Apagar">🗑</button>`:
+      `<span class="nm" data-a="nm">${esc(g.n)}${g.c&&g.t?`<small>chegou às ${g.t}</small>`:""}</span><button class="px" data-a="px" aria-label="Alterar número de pessoas">${g.p} pess.</button>`)+`</li>`;
+    }
+    html+=`</ul><div class="add"><input placeholder="Adicionar convidado…" data-a="addin"><button data-a="add">+</button></div></section>`;
+  }
+  $("app").innerHTML=html||'<div class="empty">Nenhum convidado encontrado.</div>';
+  $("sP").textContent=pp;$("sT").textContent=pt;$("sG").textContent=gc+"/"+gi;
+  $("pb").style.width=(pt?pp/pt*100:0)+"%";
+  if(editing){const e=document.querySelector(".edit");if(e){e.focus();e.select()}}
+}
+const find=el=>{const li=el.closest("li"),s=el.closest(".t");const t=S.t.find(x=>x.id==s.dataset.t);return{t,g:li?t.g.find(x=>x.id==li.dataset.g):null,s}};
+$("app").addEventListener("click",e=>{
+  const b=e.target.closest("[data-a]");if(!b)return;const a=b.dataset.a,{t,g,s}=find(b);
+  if(a==="tog"){if(!(Q||F!=="all"))t.open=!t.open}
+  else if(a!=="tog"&&!ok())return;
+  else if(a==="ck"){g.c=g.c?0:1;g.t=g.c?new Date().toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"}):"";push(t,g)}
+  else if(a==="px"){g.p=g.p>=6?1:g.p+1;push(t,g)}
+  else if(a==="nm"){editing=g.id}
+  else if(a==="del"){t.g=t.g.filter(x=>x!==g);editing=null;push(t,g,1)}
+  else if(a==="add"){const i=s.querySelector(".add input"),v=i.value.trim();if(!v)return;const ng={id:"n"+Date.now().toString(36)+Math.random().toString(36).slice(2,5),n:v,p:pax(v),c:0,t:"",o:Date.now()};t.g.push(ng);push(t,ng)}
+  else return;
+  save();render();
+});
+$("app").addEventListener("keydown",e=>{
+  const a=e.target.dataset.a;
+  if(a==="ed"&&(e.key==="Enter"||e.key==="Escape")){
+    if(e.key==="Enter"){const{t,g}=find(e.target);const v=e.target.value.trim();if(v&&ok()){g.n=v;g.p=pax(v);push(t,g)}}
+    editing=null;save();render();
+  }
+  if(a==="addin"&&e.key==="Enter")e.target.nextElementSibling.click();
+});
+$("app").addEventListener("focusout",e=>{
+  if(e.target.dataset.a==="ed"&&editing){const{t,g}=find(e.target);const v=e.target.value.trim();if(v&&v!==g.n&&ok()){g.n=v;g.p=pax(v);push(t,g)}editing=null;setTimeout(render,120)}
+  if(e.target.dataset.a==="addin"&&pending){pending=0;setTimeout(render,150)}
+});
+$("q").addEventListener("input",e=>{Q=norm(e.target.value.trim());render()});
+document.querySelectorAll(".chip").forEach(c=>c.addEventListener("click",()=>{
+  F=c.dataset.f;document.querySelectorAll(".chip").forEach(x=>x.classList.toggle("on",x===c));render()}));
+$("exp").onclick=()=>{S.t.forEach(t=>t.open=true);save();render()};
+$("col").onclick=()=>{S.t.forEach(t=>t.open=false);save();render()};
+$("prt").onclick=()=>{try{window.print()}catch(e){}};
+let armed=0;
+$("rst").onclick=function(){if(!ok())return;
+  if(!armed){armed=1;this.textContent="Toque de novo para confirmar";setTimeout(()=>{armed=0;this.textContent="Limpar presenças"},3500);return}
+  S.t.forEach(t=>t.g.forEach(g=>{if(g.c){g.c=0;g.t="";push(t,g)}}));armed=0;this.textContent="Limpar presenças";save();render();
+};
+$("theme").onclick=()=>{
+  const r=document.documentElement,d=matchMedia("(prefers-color-scheme:dark)").matches;
+  const cur=r.dataset.theme||(d?"dark":"light");r.dataset.theme=cur==="dark"?"light":"dark";
+};
+render();init();
+</script>
+</body>
+</html>
